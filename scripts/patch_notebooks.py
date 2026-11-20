@@ -42,6 +42,7 @@ errata): the setup cell handles the API keys for you.
 cell can take 30+ minutes. You can skip it if you want to get to section 4."""
 
 SETUP_CELL = f'''import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -73,17 +74,19 @@ root = (
     else str(next(p for p in Path.cwd().parents if p.name == repo))
 )
 
-if Path(root).exists() and not Path(f"{{root}}/{{chapter}}").exists():
+# Download the exercise files (checks for the section folder, so a failed download is retried on re-running)
+exercises_path = Path(f"{{root}}/{{chapter}}/exercises/part1_emergent_misalignment")
+if Path(root).exists() and not exercises_path.exists():
     if not IN_COLAB:
         !sudo apt-get install unzip
         %pip install jupyter ipython --upgrade
 
-    if not os.path.exists(f"{{root}}/{{chapter}}"):
-        !wget -q -P {{root}} https://github.com/{OWNER}/{{repo}}/archive/refs/heads/{{branch}}.zip
-        !unzip -q {{root}}/{{branch}}.zip '{{repo}}-{{branch}}/{{chapter}}/exercises/*' -d {{root}}
-        !mv {{root}}/{{repo}}-{{branch}}/{{chapter}} {{root}}/{{chapter}}
-        !rm {{root}}/{{branch}}.zip
-        !rm -r {{root}}/{{repo}}-{{branch}}
+    !wget -q -O {{root}}/{{branch}}.zip https://github.com/{OWNER}/{{repo}}/archive/refs/heads/{{branch}}.zip
+    !unzip -q -o {{root}}/{{branch}}.zip '{{repo}}-{{branch}}/{{chapter}}/exercises/*' -d {{root}}
+    shutil.copytree(f"{{root}}/{{repo}}-{{branch}}/{{chapter}}", f"{{root}}/{{chapter}}", dirs_exist_ok=True)
+    shutil.rmtree(f"{{root}}/{{repo}}-{{branch}}")
+    os.remove(f"{{root}}/{{branch}}.zip")
+assert exercises_path.exists(), "Downloading the exercise files failed - check the output above"
 
 # Clone the EM repo into the exercises directory, at the pinned commit
 em_dir = f"{{root}}/{{chapter}}/exercises/model-organisms-for-EM"
