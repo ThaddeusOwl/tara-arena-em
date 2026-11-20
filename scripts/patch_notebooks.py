@@ -41,7 +41,8 @@ errata): the setup cell handles the API keys for you.
 > **Timings:** loading the models takes about 10–15 minutes on Colab. The "Comparing Steering Vectors via KL Divergence" \
 cell can take 30+ minutes. You can skip it if you want to get to section 4."""
 
-SETUP_CELL = f'''import os
+SETUP_CELL = f'''import importlib.util
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -59,6 +60,11 @@ EM_COMMIT = "{EM_COMMIT}"
 # Install dependencies (Colab already has torch, transformers, peft & accelerate)
 if IN_COLAB:
     %pip install -q einops jaxtyping openai python-dotenv tabulate "bitsandbytes>=0.46.1"
+    # Colab ships an old torchao, which makes peft refuse to load any LoRA adapter ("Found an incompatible version of
+    # torchao"). Nothing in this notebook uses torchao, so remove it.
+    if importlib.util.find_spec("torchao") is not None:
+        %pip uninstall -q -y torchao
+        importlib.invalidate_caches()
 else:
     try:
         import bitsandbytes, dotenv, einops, jaxtyping, openai, peft, tabulate

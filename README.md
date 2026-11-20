@@ -42,6 +42,8 @@ All of these are in the notebooks only. Run `git diff a6d2c46 -- '*.ipynb'` to s
   - Downloads this repo instead of ARENA's.
   - Installs `bitsandbytes>=0.46.1` (Week 11 errata #2), quoted so the shell doesn't read `>` as a redirect.
   - Drops the `transformer_lens` install, which this notebook never imports.
+  - On Colab, uninstalls the preinstalled `torchao` (0.10). Colab's `peft` refuses to load any LoRA adapter when
+    `torchao` older than 0.16 is installed, and nothing here uses `torchao`.
   - Clones the EM repo at a pinned commit (errata #1).
 - **API keys** (errata #1, #4 and #5): on Colab, the setup cell copies the `OPENROUTER_API_KEY` and `HF_TOKEN` secrets
   into environment variables. `solutions.py` and the EM repo's `pt_utils.py` already read them with `os.getenv`, and
